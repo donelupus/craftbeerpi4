@@ -37,3 +37,15 @@ For a more detailed description of a development setup without the _development 
 Thanks to all the people who have contributed
 
 [![contributors](https://contributors-img.web.app/image?repo=craftbeerpi/craftbeerpi4)](https://github.com/craftbeerpi/craftbeerpi4/graphs/contributors)
+
+
+Offene Fragen:
+* Wie kann man einen Aktor zeitlich steuern?
+* Wie kann man einen Stellmotor auf Position ansteuern?
+* Wie kann man eine Notifikation senden?
+
+
+### Temperatur Sensor
+Nur default 1 wire GPIO PIN #4 hat funktioniert. Z.B. PIN # 17 hat nicht funktioniert.
+Unbedingt die 17 kOhm zwischen Data und VCC schalten. Ansonsten wurde kein Sensor angelegt.
+3.3V an VCC hat gereicht und ist sehr wahrscheinlich auch besser, weil dann nur 3,3 V am GPIO Input anlegen.
