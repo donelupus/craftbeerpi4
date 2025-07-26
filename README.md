@@ -49,3 +49,35 @@ Offene Fragen:
 Nur default 1 wire GPIO PIN #4 hat funktioniert. Z.B. PIN # 17 hat nicht funktioniert.
 Unbedingt die 17 kOhm zwischen Data und VCC schalten. Ansonsten wurde kein Sensor angelegt.
 3.3V an VCC hat gereicht und ist sehr wahrscheinlich auch besser, weil dann nur 3,3 V am GPIO Input anlegen.
+
+Prüfe in ls /sys/bus/w1/devices  ob ein 28*** file angelegt wurde. Wenn Verbindung fehlerhaft, dann wird ein 00*** file angelegt.
+
+### Level Sensor
+Plugin war lange installiert aber Aktor war nicht verfügbar.
+Ohne nachvollziehbaren Grund war der Aktor einfach plötzlich da.
+
+Leider kann der Aktor den Input nicht richtig lesen.
+Es wurde überprüft mit folgenden python script:
+
+import RPi.GPIO as GPIO
+import time
+
+# Use BCM numbering
+GPIO.setmode(GPIO.BCM)
+
+# Define the pin to read
+input_pin = 17  # GPIO17 (physical pin 11)
+
+# Set up the pin as input with pull-down resistor
+GPIO.setup(input_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+try:
+    print("Reading GPIO input. Press CTRL+C to stop.")
+    while True:
+        input_state = GPIO.input(input_pin)
+        print(f"GPIO{input_pin} state: {'HIGH' if input_state else 'LOW'}")
+        time.sleep(0.5)
+except KeyboardInterrupt:
+    print("Exiting...")
+finally:
+    GPIO.cleanup()
