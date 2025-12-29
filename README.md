@@ -46,38 +46,42 @@ Offene Fragen:
 
 
 ### Temperatur Sensor
-Nur default 1 wire GPIO PIN #4 hat funktioniert. Z.B. PIN # 17 hat nicht funktioniert.
+1 wire enablen:
+* Über raspi-config -> default pin 4 (BCM)
+* Über /boot/firmware/config.txt
+  dtoverlay=w1-gpio,gpiopin=5,pillup=on
+  So kann jeder GPIO Pin verwendet werden. Aber z.B. i2c Pins können nicht ohne extra Konfiguration verwendet werden.
+
 Unbedingt die 17 kOhm zwischen Data und VCC schalten. Ansonsten wurde kein Sensor angelegt.
+
 3.3V an VCC hat gereicht und ist sehr wahrscheinlich auch besser, weil dann nur 3,3 V am GPIO Input anlegen.
 
 Prüfe in ls /sys/bus/w1/devices  ob ein 28*** file angelegt wurde. Wenn Verbindung fehlerhaft, dann wird ein 00*** file angelegt.
 
+Trotz mehmaligem Probieren, hat das Verwenden eines anderen Pins als Pin 4 erst nach einigen Versuchen funktioniert. Das ursprüngliche Problem wurde nicht gefunden. :(
+
 ### Level Sensor
 Plugin war lange installiert aber Aktor war nicht verfügbar.
+Installation via 
+
+    pipx runpip cbpi4 install ./cbpi4-GPIODependentActor 
+
 Ohne nachvollziehbaren Grund war der Aktor einfach plötzlich da.
 
-Leider kann der Aktor den Input nicht richtig lesen.
-Es wurde überprüft mit folgenden python script:
+Man muss den State des Aktors in der UI auf ON stellen!
+Erst dann kann er den andern Aktor ausschalten.
 
-import RPi.GPIO as GPIO
-import time
+## Waveshare Stepper Motor hat
+https://www.waveshare.com/wiki/Stepper_Motor_HAT_(B)#wiringPi
+Followed instructions BCM2835, wiringPi, lgpio, Python (pipx install RPi.GPIO)
 
-# Use BCM numbering
-GPIO.setmode(GPIO.BCM)
 
-# Define the pin to read
-input_pin = 17  # GPIO17 (physical pin 11)
+### Temperatur Sensor
+Nur default 1 wire GPIO PIN #4 hat funktioniert. Z.B. PIN # 17 hat nicht funktioniert.
+Unbedingt die 17 kOhm zwischen Data und VCC schalten. Ansonsten wurde kein Sensor angelegt.
+3.3V an VCC hat gereicht und ist sehr wahrscheinlich auch besser, weil dann nur 3,3 V am GPIO Input anlegen.
 
-# Set up the pin as input with pull-down resistor
-GPIO.setup(input_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-try:
-    print("Reading GPIO input. Press CTRL+C to stop.")
-    while True:
-        input_state = GPIO.input(input_pin)
-        print(f"GPIO{input_pin} state: {'HIGH' if input_state else 'LOW'}")
-        time.sleep(0.5)
-except KeyboardInterrupt:
-    print("Exiting...")
-finally:
-    GPIO.cleanup()
+## Build and install a plugin locally
+
+pipx runpip cbpi4 install <relative path to plugin source code folder>
