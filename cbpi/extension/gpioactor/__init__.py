@@ -125,15 +125,16 @@ class GPIOActor(CBPiActor):
 
     async def run(self):
         while self.running == True:
+            logging.debug("GPIOActor - On coroutine loop iteration")
             if self.state == True:
                 heating_time = self.sampleTime * (self.power / 100)
                 wait_time = self.sampleTime - heating_time
                 if heating_time > 0:
-                    #logging.info("Heating Time: {}".format(heating_time))
+                    logging.info("GPIOActor - Heating Time: {}".format(heating_time))
                     GPIO.output(self.gpio, self.get_GPIO_state(1))
                     await asyncio.sleep(heating_time)
                 if wait_time > 0:
-                    #logging.info("Wait Time: {}".format(wait_time))
+                    logging.info("GPIOActor - Wait Time: {}".format(wait_time))
                     GPIO.output(self.gpio, self.get_GPIO_state(0))
                     await asyncio.sleep(wait_time)
             else:
@@ -199,6 +200,7 @@ class GPIOPWMActor(CBPiActor):
             )
         ],
     )
+    async def setpower(self, Power=100, **kwargs):
         logging.info(Power)
         self.power = int(Power)
         if self.power < 0:
@@ -209,10 +211,14 @@ class GPIOPWMActor(CBPiActor):
 
     async def on_start(self):
         self.gpio = self.props.get("GPIO", None)
+        self.inverted = self.props.get("Inverted", "No")
         self.frequency = self.props.get("Frequency", 0.5)
         if self.gpio is not None:
             GPIO.setup(self.gpio, GPIO.OUT)
-            GPIO.output(self.gpio, 0)
+            if self.inverted == "No":
+                GPIO.output(self.gpio, 0)
+            else:
+                GPIO.output(self.gpio, 1)
         self.state = False
         self.power = None
         self.p = None
@@ -234,7 +240,10 @@ class GPIOPWMActor(CBPiActor):
         try:
             if self.p is None:
                 self.p = GPIO.PWM(int(self.gpio), float(self.frequency))
-            self.p.start(self.power)
+            if self.inverted == "No":
+                self.p.start(self.power)
+            else:
+                self.p.start(100 - self.power)
             self.state = True
         #            await self.cbpi.actor.actor_update(self.id,self.power)
         except:
@@ -242,13 +251,22 @@ class GPIOPWMActor(CBPiActor):
 
     async def off(self):
         logger.info("PWM ACTOR %s OFF - GPIO %s " % (self.id, self.gpio))
-        self.p.ChangeDutyCycle(0)
+        if self.inverted == "No":
+            self.p.ChangeDutyCycle(0)
+        else:
+            self.p.ChangeDutyCycle(100)
+
         self.state = False
 
     async def set_power(self, power):
         if self.p and self.state == True:
-            self.p.ChangeDutyCycle(power)
-        await self.cbpi.actor.actor_update(self.id,power)
+            if self.inverted == "No":
+                self.p.ChangeDutyCycle(power)
+            else:
+                self.p.ChangeDutyCycle(
+                    100 - power
+                )  # Set power to 100-value to invert output
+        await self.cbpi.actor.actor_update(self.id, power)
         pass
 
     def get_state(self):
